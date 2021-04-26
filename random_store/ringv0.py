@@ -141,16 +141,31 @@ class Node:
     """ Node abstraction """
 
     def __init__(self, addr: str, alias: str):
-        self._addr = addr
-        self._alias = alias
-        self._hash = binascii.crc32(addr.encode())
+        self._addr: str = addr
+        self._alias: str = alias
+        _tmp_id = f'{addr}.{alias}'
+        self._hash: int = binascii.crc32(_tmp_id.encode())
 
     @property
     def hash(self):
         return self._hash
 
+    @property
+    def addr(self):
+        return self._addr
+
     def __eq__(self, other):
         return self.hash == other.hash
+
+    def __hash__(self):
+        """ For Set's comparisions """
+        return self._hash
+
+    def __str__(self):
+        return f'<{__name__}.Node {self._alias}.HASH:{self._hash:x}>'
+
+    def __repr__(self):
+        return f'<{__name__}.Node {self._alias}.HASH:{self._hash:x}>'
 
 
 class Ring:
@@ -191,7 +206,7 @@ class Ring:
         #    weights.append((mhash, node))
 
         # calculates the weigth of each hashd key + node precomputed hash
-        weights = [(xorshiftMult64(key_hash ^ node.hash))
+        weights = [(xorshiftMult64(key_hash ^ node.hash), node)
                    for node in self._nodes]
 
         return sorted(weights)
